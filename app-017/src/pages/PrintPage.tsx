@@ -94,6 +94,9 @@ export default function PrintPage({ id }: { id: string }) {
     <div>
       <div className="print-toolbar no-print">
         <button type="button" onClick={() => navigate(`/editor/${id}`)}>← 返回编辑器</button>
+        <button type="button" onClick={() => navigate(`/editor/${id}/print/imposition`)}>
+          拼版折手（骑马钉 / 胶装）
+        </button>
         <button type="button" className="primary" onClick={() => window.print()}>
           打印（请选择「实际大小 / 100%」）
         </button>

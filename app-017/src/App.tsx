@@ -5,6 +5,7 @@ import { usePath } from './router';
 import HomePage from './pages/HomePage';
 import EditorPage from './pages/EditorPage';
 import PrintPage from './pages/PrintPage';
+import ImpositionPage from './pages/ImpositionPage';
 import LibraryPage from './pages/LibraryPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -44,6 +45,8 @@ export default function App() {
   if (path === '/' || path === '') page = <HomePage />;
   else if (path === '/library') page = <LibraryPage />;
   else if (path === '/settings') page = <SettingsPage />;
+  else if (/^\/editor\/[^/]+\/print\/imposition$/.test(path))
+    page = <ImpositionPage id={path.split('/')[2]} />;
   else if (/^\/editor\/[^/]+\/print$/.test(path)) page = <PrintPage id={path.split('/')[2]} />;
   else if (/^\/editor\/[^/]+$/.test(path)) page = <EditorPage id={path.split('/')[2]} />;
   else page = <HomePage />;

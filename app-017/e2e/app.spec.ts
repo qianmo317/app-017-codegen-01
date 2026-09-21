@@ -154,3 +154,50 @@ test.describe('设置', () => {
     await expect(page.getByLabel('标调模式')).toHaveValue('all');
   });
 });
+
+test.describe('拼版折手', () => {
+  test('骑马钉/胶装切换重排、补白不占页码、核对通过、改纸张触发重排', async ({ page }) => {
+    await createDoc(page);
+    const textarea = page.getByLabel('原文输入区');
+    // 约 3 页正文 → 需补 1 页空白凑满 4
+    await textarea.fill('特殊教育需要盲文教材，特殊教育学校老师常用。'.repeat(40));
+    await page.getByRole('button', { name: '全部按默认读音确认' }).click();
+    await page.getByRole('button', { name: '打印与导出 →' }).click();
+    await page.getByRole('button', { name: /拼版折手/ }).click();
+    await expect(page).toHaveURL(/\/print\/imposition$/);
+
+    // 默认骑马钉：标题与核对面板
+    await expect(page.locator('h1')).toContainText('拼版折手');
+    await expect(page.getByText('末尾补空白页')).toBeVisible();
+    await expect(page.getByText(/核对通过/)).toBeVisible();
+    await expect(page.getByText(/不占正文页码/)).toBeVisible();
+    // 至少渲染出一张大纸的正/反两面
+    await expect(page.locator('.sheet-svg-wrap svg').first()).toBeVisible();
+    const saddleCount = await page.locator('.sheet-block').count();
+    expect(saddleCount).toBeGreaterThan(0);
+
+    // 切到胶装 → 立即重排且仍核对通过
+    await page.getByText('胶装', { exact: true }).click();
+    await expect(page.getByText(/核对通过/)).toBeVisible();
+    const perfectCount = await page.locator('.sheet-block').count();
+    expect(perfectCount).toBe(saddleCount); // 张数相同
+
+    // 切回骑马钉
+    await page.getByText('骑马钉', { exact: true }).click();
+    await expect(page.getByText(/核对通过/)).toBeVisible();
+
+    // 改小纸张（A4 横向放不下两个 A4 纵放页）→ 适配失败、打印禁用、给出原因
+    await page.getByLabel('大纸预设').selectOption('a4');
+    await expect(page.getByText(/放不下/).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /打印大纸/ })).toBeDisabled();
+
+    // 换回 A3 → 恢复核对通过
+    await page.getByLabel('大纸预设').selectOption('a3');
+    await expect(page.getByText(/核对通过/)).toBeVisible();
+
+    // 折好阅读顺序与正文页数一致（无漏页/重页）
+    await page.getByText('查看折好还原的阅读顺序').click();
+    await expect(page.locator('.reading-order')).toContainText('1 → 2');
+  });
+});
+

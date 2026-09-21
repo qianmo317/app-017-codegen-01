@@ -37,20 +37,32 @@ function cellDotsSVG(cell: BrailleCell, x: number, y: number, p: PrinterParams):
     .join('');
 }
 
-/** 单页 → 独立 SVG 字符串（真实 mm 尺寸，可直接打印） */
-export function pageToSVG(page: LayoutPage, setup: PageSetup, printer: PrinterParams, opts: PageSVGOptions = {}): string {
-  const w = printer.paperWidthMm;
-  const h = printer.paperHeightMm;
+/** 单页正文（不含 <svg> 外壳）→ SVG 片段，可平移到指定原点；拼版大纸复用 */
+export function pageBodySVG(
+  page: LayoutPage,
+  setup: PageSetup,
+  printer: PrinterParams,
+  opts: PageSVGOptions & { offsetX?: number; offsetY?: number } = {},
+): string {
+  const ox = opts.offsetX ?? 0;
+  const oy = opts.offsetY ?? 0;
   const parts: string[] = [];
   page.lines.forEach((line, li) => {
     line.cells.forEach((cell, ci) => {
       if (cell.dots.length === 0) return;
-      const x = setup.marginMm.left + ci * printer.cellPitchMm;
-      const y = setup.marginMm.top + li * printer.linePitchMm;
+      const x = ox + setup.marginMm.left + ci * printer.cellPitchMm;
+      const y = oy + setup.marginMm.top + li * printer.linePitchMm;
       parts.push(`<g${cell.uncertain && opts.markUncertain ? ' class="uncertain"' : ''}>${cellDotsSVG(cell, x, y, printer)}</g>`);
     });
   });
-  const body = parts.join('');
+  return parts.join('');
+}
+
+/** 单页 → 独立 SVG 字符串（真实 mm 尺寸，可直接打印） */
+export function pageToSVG(page: LayoutPage, setup: PageSetup, printer: PrinterParams, opts: PageSVGOptions = {}): string {
+  const w = printer.paperWidthMm;
+  const h = printer.paperHeightMm;
+  const body = pageBodySVG(page, setup, printer, opts);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 ${w} ${h}" class="braille-page">${body}</svg>`;
 }
 

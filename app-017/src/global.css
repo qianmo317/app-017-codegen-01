@@ -176,6 +176,61 @@ html.high-contrast .cell-btn.selected { background: rgba(255, 212, 0, 0.25); }
 .print-page-wrap svg { display: block; width: 100%; height: auto; }
 .calibration-note { background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; }
 
+/* ---------- 拼版折手 ---------- */
+.imposition-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.imposition-controls {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; background: var(--panel, #fafafa);
+}
+.imposition-controls fieldset { border: none; padding: 0; margin: 0; min-width: 220px; }
+.imposition-controls legend { font-weight: 700; padding: 0 0 6px; }
+.imposition-controls .hint, .hint { color: var(--muted); font-size: 0.85rem; margin: 6px 0 0; }
+.imposition-controls .num-row { display: flex; gap: 10px; margin-top: 8px; }
+.imposition-controls .num-row input { width: 90px; margin-left: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg-item { padding: 6px 14px; cursor: pointer; margin: 0; border-right: 1px solid var(--border); }
+.seg-item:last-child { border-right: none; }
+.seg-item.active { background: var(--accent); color: #fff; }
+.seg-item input { position: absolute; opacity: 0; pointer-events: none; }
+
+.imposition-check { border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; }
+.imposition-check h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.check-summary { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; margin: 0 0 10px; padding: 0; }
+.check-summary li { font-size: 0.92rem; }
+.check-ok { color: #1b5e20; background: #e8f5e9; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.check-bad { color: #b71c1c; background: #ffebee; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.check-bad ul { margin: 6px 0 0; padding-left: 20px; }
+.issue-tag {
+  display: inline-block; border-radius: 4px; padding: 0 6px; margin-right: 8px;
+  font-size: 0.78rem; background: #b71c1c; color: #fff;
+}
+.issue-tag.tag-paper { background: #e65100; }
+.issue-tag.tag-order, .issue-tag.tag-duplicate, .issue-tag.tag-missing { background: #b71c1c; }
+.reading-order { font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-all; background: #f4f4f4; padding: 8px; border-radius: 6px; }
+.muted { color: var(--muted); }
+.ok { color: #1b5e20; }
+.bad { color: #b71c1c; }
+
+.sheet-block { margin-bottom: 28px; }
+.sheet-block h3 { font-size: 1rem; margin: 0 0 8px; }
+.sheet-sides { display: flex; gap: 18px; flex-wrap: wrap; }
+.sheet-figure { margin: 0; flex: 1 1 380px; min-width: 300px; }
+.sheet-figure figcaption { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+.sheet-svg-wrap {
+  background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 4px;
+}
+.sheet-svg-wrap svg { display: block; width: 100%; height: auto; }
+.sheet-fold-hint { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+
+@media print {
+  .imposition h1, .imposition h2, .imposition h3 { display: none; }
+  .sheet-block { margin: 0; page-break-after: always; break-after: page; }
+  .sheet-sides { flex-direction: column; gap: 0; }
+  .sheet-figure { margin: 0; page-break-after: always; break-after: page; }
+  .sheet-svg-wrap { border: none; padding: 0; }
+  .sheet-svg-wrap svg { width: 100%; }
+}
+
 @media print {
   .topnav, .footer, .print-toolbar, .no-print, .skip-link { display: none !important; }
   main { padding: 0; max-width: none; }
