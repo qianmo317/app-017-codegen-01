@@ -8,12 +8,16 @@ import { svgToPngBlob, downloadBlob, downloadText } from '../lib/png';
 import { getDoc } from '../lib/storage';
 import { useSettings } from '../App';
 import { navigate } from '../router';
+import ImpositionPanel from '../components/ImpositionPanel';
+
+type ViewMode = 'pages' | 'imposition';
 
 export default function PrintPage({ id }: { id: string }) {
   const { settings } = useSettings();
   const [doc, setDoc] = useState<Doc | null>(null);
   const [withCalibration, setWithCalibration] = useState(false);
   const [msg, setMsg] = useState('');
+  const [view, setView] = useState<ViewMode>('pages');
 
   useEffect(() => {
     let alive = true;
@@ -94,42 +98,78 @@ export default function PrintPage({ id }: { id: string }) {
     <div>
       <div className="print-toolbar no-print">
         <button type="button" onClick={() => navigate(`/editor/${id}`)}>← 返回编辑器</button>
-        <button type="button" className="primary" onClick={() => window.print()}>
-          打印（请选择「实际大小 / 100%」）
-        </button>
-        <button type="button" disabled={uncertainCount > 0} title={uncertainCount > 0 ? '存在未确认读音' : ''} onClick={exportBRF}>
-          下载 BRF
-        </button>
-        <button type="button" disabled={uncertainCount > 0} onClick={exportSVG}>
-          下载 SVG
-        </button>
-        <button type="button" disabled={uncertainCount > 0} onClick={exportPNG}>
-          下载 PNG
-        </button>
-        <label>
-          <input type="checkbox" checked={withCalibration} onChange={(e) => setWithCalibration(e.target.checked)} />{' '}
-          附打印校准页
-        </label>
+        <div className="view-switch" role="tablist" aria-label="打印视图切换">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'pages'}
+            className={view === 'pages' ? 'primary' : ''}
+            onClick={() => setView('pages')}
+          >
+            单页打印
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'imposition'}
+            className={view === 'imposition' ? 'primary' : ''}
+            onClick={() => setView('imposition')}
+          >
+            拼版大纸（骑马钉 / 胶装）
+          </button>
+        </div>
+        {view === 'pages' && (
+          <>
+            <button type="button" className="primary" onClick={() => window.print()}>
+              打印（请选择「实际大小 / 100%」）
+            </button>
+            <button type="button" disabled={uncertainCount > 0} title={uncertainCount > 0 ? '存在未确认读音' : ''} onClick={exportBRF}>
+              下载 BRF
+            </button>
+            <button type="button" disabled={uncertainCount > 0} onClick={exportSVG}>
+              下载 SVG
+            </button>
+            <button type="button" disabled={uncertainCount > 0} onClick={exportPNG}>
+              下载 PNG
+            </button>
+            <label>
+              <input type="checkbox" checked={withCalibration} onChange={(e) => setWithCalibration(e.target.checked)} />{' '}
+              附打印校准页
+            </label>
+          </>
+        )}
         <span className="stats" role="status" aria-live="polite">
           {msg || (uncertainCount > 0 ? `${uncertainCount} 项读音未确认，导出已锁定` : '')}
         </span>
       </div>
 
-      <p className="calibration-note no-print">
-        打印提示：请务必在打印对话框选择「实际大小 / 100%」，任何缩放都会改变点距导致无法触摸阅读。
-        打印后可用校准页量测：横向 10 方 ≈ {(9 * settings.printer.cellPitchMm + settings.printer.dotPitchMm).toFixed(1)}mm。
-      </p>
+      {view === 'pages' ? (
+        <>
+          <p className="calibration-note no-print">
+            打印提示：请务必在打印对话框选择「实际大小 / 100%」，任何缩放都会改变点距导致无法触摸阅读。
+            打印后可用校准页量测：横向 10 方 ≈ {(9 * settings.printer.cellPitchMm + settings.printer.dotPitchMm).toFixed(1)}mm。
+          </p>
 
-      {withCalibration && (
-        <div
-          className="print-page-wrap"
-          // 校准页 SVG
-          dangerouslySetInnerHTML={{ __html: calibrationSVG(settings.printer, setup) }}
+          {withCalibration && (
+            <div
+              className="print-page-wrap"
+              // 校准页 SVG
+              dangerouslySetInnerHTML={{ __html: calibrationSVG(settings.printer, setup) }}
+            />
+          )}
+          {svgs.map((svg, i) => (
+            <div className="print-page-wrap" key={i} dangerouslySetInnerHTML={{ __html: svg }} aria-label={`第 ${i + 1} 页点阵图`} />
+          ))}
+        </>
+      ) : (
+        <ImpositionPanel
+          pages={pages.layout.pages}
+          setup={setup}
+          printer={settings.printer}
+          docTitle={doc.title}
+          exportLocked={uncertainCount > 0}
         />
       )}
-      {svgs.map((svg, i) => (
-        <div className="print-page-wrap" key={i} dangerouslySetInnerHTML={{ __html: svg }} aria-label={`第 ${i + 1} 页点阵图`} />
-      ))}
     </div>
   );
 }

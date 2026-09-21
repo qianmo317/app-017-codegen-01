@@ -25,7 +25,7 @@ export interface PageSVGOptions {
   showSource?: boolean;
 }
 
-function cellDotsSVG(cell: BrailleCell, x: number, y: number, p: PrinterParams): string {
+export function cellDotsSVG(cell: BrailleCell, x: number, y: number, p: PrinterParams): string {
   const r = p.dotDiameterMm / 2;
   return cell.dots
     .map((d) => {
@@ -37,20 +37,32 @@ function cellDotsSVG(cell: BrailleCell, x: number, y: number, p: PrinterParams):
     .join('');
 }
 
-/** 单页 → 独立 SVG 字符串（真实 mm 尺寸，可直接打印） */
-export function pageToSVG(page: LayoutPage, setup: PageSetup, printer: PrinterParams, opts: PageSVGOptions = {}): string {
-  const w = printer.paperWidthMm;
-  const h = printer.paperHeightMm;
+/** 单页点阵的内部 SVG 标记（不含 <svg> 外壳），可指定原点偏移（拼版双联用） */
+export function pageBodyMarkup(
+  page: LayoutPage,
+  setup: PageSetup,
+  printer: PrinterParams,
+  ox = 0,
+  oy = 0,
+  opts: PageSVGOptions = {},
+): string {
   const parts: string[] = [];
   page.lines.forEach((line, li) => {
     line.cells.forEach((cell, ci) => {
       if (cell.dots.length === 0) return;
-      const x = setup.marginMm.left + ci * printer.cellPitchMm;
-      const y = setup.marginMm.top + li * printer.linePitchMm;
+      const x = ox + setup.marginMm.left + ci * printer.cellPitchMm;
+      const y = oy + setup.marginMm.top + li * printer.linePitchMm;
       parts.push(`<g${cell.uncertain && opts.markUncertain ? ' class="uncertain"' : ''}>${cellDotsSVG(cell, x, y, printer)}</g>`);
     });
   });
-  const body = parts.join('');
+  return parts.join('');
+}
+
+/** 单页 → 独立 SVG 字符串（真实 mm 尺寸，可直接打印） */
+export function pageToSVG(page: LayoutPage, setup: PageSetup, printer: PrinterParams, opts: PageSVGOptions = {}): string {
+  const w = printer.paperWidthMm;
+  const h = printer.paperHeightMm;
+  const body = pageBodyMarkup(page, setup, printer, 0, 0, opts);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 ${w} ${h}" class="braille-page">${body}</svg>`;
 }
 

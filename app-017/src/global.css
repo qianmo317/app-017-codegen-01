@@ -197,3 +197,88 @@ html.high-contrast .cell-btn.selected { background: rgba(255, 212, 0, 0.25); }
   font-size: 0.85rem;
 }
 .badge.error { background: var(--danger); color: #fff; }
+.badge.ok { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- 拼版（折手） ---------- */
+.view-switch { display: inline-flex; gap: 0; }
+.view-switch button { border-radius: 0; }
+.view-switch button:first-child { border-radius: 6px 0 0 6px; }
+.view-switch button:last-child { border-radius: 0 6px 6px 0; }
+
+.imp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.imp-controls label { margin: 0; }
+.imp-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.imp-warn { color: var(--warn-ink); background: var(--warn-bg); border-radius: 6px; padding: 6px 10px; margin: 4px 0; }
+.imp-issue { color: var(--danger); margin: 4px 0; }
+.imp-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0 16px; }
+
+.imp-sheet-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.imp-sheet { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.imp-sheet-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.imp-side { margin-bottom: 10px; }
+.imp-side-label { font-size: 0.88rem; font-weight: 600; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 4px; }
+.imp-side-label .imp-edge { font-weight: 400; color: var(--danger); font-size: 0.78rem; }
+.imp-side-label .imp-hint { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+
+.imp-sheet-row { display: grid; grid-template-columns: 1fr 22px 1fr; align-items: stretch; gap: 0; }
+.imp-slot {
+  position: relative;
+  min-height: 88px;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(27, 94, 32, 0.05);
+}
+.imp-slot.is-blank {
+  border-style: dashed;
+  border-color: var(--muted);
+  background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(90, 107, 90, 0.08) 8px, rgba(90, 107, 90, 0.08) 16px);
+}
+.imp-slot-num { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+.imp-slot-blank { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+.imp-slot-sub { font-size: 0.78rem; color: var(--muted); }
+.imp-slot-tag {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 0.7rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 4px;
+  padding: 0 5px;
+}
+.imp-slot.is-blank .imp-slot-tag { background: var(--muted); }
+.imp-fold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+  font-size: 0.8rem;
+  border-left: 2px dashed var(--danger);
+  border-right: 2px dashed var(--danger);
+}
+.imp-sheet-foot { margin: 4px 0 0; }
+
+.print-sheet-label { margin: 14px 0 4px; font-size: 0.85rem; color: var(--muted); }
+.print-sheet-wrap { background: #fff; border: 1px solid var(--border); margin-bottom: 18px; padding: 8px; }
+.print-sheet-wrap svg { display: block; width: 100%; height: auto; }
+
+@media print {
+  .print-sheet-wrap { border: none; margin: 0; padding: 0; page-break-after: always; }
+  /* 拼版辅助标注（折线、页码提示、面别）只用于屏幕核对，不印到大纸上 */
+  .braille-sheet .imp-guides { display: none; }
+}

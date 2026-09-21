@@ -144,6 +144,74 @@ test.describe('模板与词语表', () => {
   });
 });
 
+test.describe('拼版（折手）', () => {
+  test('骑马钉/胶装切换、补白提示、正反面与朝外标注、核对通过', async ({ page }) => {
+    await createDoc(page);
+    // 构造 6 个正文页（凑不满印张 → 末尾补 2 空白页）
+    await page.getByLabel('原文输入区').fill('特殊教育学校开展盲文教学需要大量点字教材。'.repeat(80));
+    await page.getByRole('button', { name: '全部按默认读音确认' }).click();
+    await page.getByRole('button', { name: '打印与导出 →' }).click();
+    await page.getByRole('tab', { name: /拼版大纸/ }).click();
+
+    // 默认骑马钉拼版，核对通过 + 补白信息
+    await expect(page.getByText(/核对通过：无漏页、无重页/)).toBeVisible();
+    await expect(page.getByText(/补白 \d+ 页（不占页码）/)).toBeVisible();
+    await expect(page.getByText(/空白页全部在末尾/)).toBeVisible();
+
+    // 最外一张正面：右槽第 1 页（封面、朝外）、左槽空白（6 页书第 8 位不存在）
+    const firstSheet = page.locator('.imp-sheet').first();
+    await expect(firstSheet.getByLabel(/正面右槽：第 1 页，折起后朝外/)).toBeVisible();
+    await expect(firstSheet.getByLabel(/正面左槽：补白空白页/)).toBeVisible();
+    await expect(firstSheet).toContainText('最外一张（封面帖）');
+    // 反面：左槽第 2 页（朝内）
+    await expect(firstSheet.getByLabel(/反面左槽：第 2 页/)).toBeVisible();
+
+    // 真实尺寸大纸：每张正反两个 SVG，全部带辅助标注
+    const sheetSvgs = page.locator('.print-sheet-wrap svg.braille-sheet');
+    expect(await sheetSvgs.count()).toBeGreaterThan(0);
+    await expect(page.getByText(/第 1 张 · 正面（朝外）/)).toBeVisible();
+
+    // 切到胶装：第一帖正面左槽是第 4 页（骑马钉 6 页时该位是空白）
+    await page.getByLabel('装订方式').selectOption('perfect');
+    await expect(page.getByText(/核对通过：无漏页、无重页/)).toBeVisible();
+    const perfectFirst = page.locator('.imp-sheet').first();
+    await expect(perfectFirst.getByLabel(/正面左槽：第 4 页/)).toBeVisible();
+    await expect(perfectFirst).toContainText('第 1 帖（叠放顺序）');
+
+    // 改大纸为装不下两页的小纸 → 警告
+    await page.getByLabel('大纸尺寸').selectOption('a4-landscape');
+    await expect(page.getByText(/装不下两页/)).toBeVisible();
+  });
+
+  test('拼版版序核对：8 页骑马钉最外一张 8|1 / 2|7，两张共 4 个 SVG 面', async ({ page }) => {
+    await createDoc(page);
+    // 110 遍 = 8 页（4 的倍数，无补白）
+    await page.getByLabel('原文输入区').fill('特殊教育学校开展盲文教学需要大量点字教材。'.repeat(110));
+    await page.getByRole('button', { name: '全部按默认读音确认' }).click();
+    await page.getByRole('button', { name: '打印与导出 →' }).click();
+    await page.getByRole('tab', { name: /拼版大纸/ }).click();
+
+    await expect(page.getByText('正文 8 页')).toBeVisible();
+    await expect(page.getByText('用纸 2 张')).toBeVisible();
+    await expect(page.getByText('补白 0 页（不占页码）')).toBeVisible();
+
+    // 最外一张：FL=8、FR=1、BL=2、BR=7
+    const cards = page.locator('.imp-sheet');
+    await expect(cards.nth(0).getByLabel(/正面左槽：第 8 页/)).toBeVisible();
+    await expect(cards.nth(0).getByLabel(/正面右槽：第 1 页，折起后朝外/)).toBeVisible();
+    await expect(cards.nth(0).getByLabel(/反面左槽：第 2 页/)).toBeVisible();
+    await expect(cards.nth(0).getByLabel(/反面右槽：第 7 页/)).toBeVisible();
+    // 内一张：6|3 / 4|5
+    await expect(cards.nth(1).getByLabel(/正面左槽：第 6 页/)).toBeVisible();
+    await expect(cards.nth(1).getByLabel(/正面右槽：第 3 页/)).toBeVisible();
+    await expect(cards.nth(1).getByLabel(/反面左槽：第 4 页/)).toBeVisible();
+    await expect(cards.nth(1).getByLabel(/反面右槽：第 5 页/)).toBeVisible();
+
+    // 2 张纸 × 正反 = 4 个真实尺寸大纸 SVG
+    await expect(page.locator('.print-sheet-wrap svg.braille-sheet')).toHaveCount(4);
+  });
+});
+
 test.describe('设置', () => {
   test('标调模式修改并持久化', async ({ page }) => {
     await page.goto('/settings');
